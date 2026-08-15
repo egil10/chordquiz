@@ -333,6 +333,17 @@ function goBack() {
 function setFlipped(val) {
   state.flipped = val;
   cardInner.classList.toggle("flipped", val);
+  primaryBtn.textContent = val ? "Next →" : "Reveal";
+}
+
+// pressing the primary control always reveals first, then advances on the
+// next press — you can never skip a chord without seeing its shape.
+function primaryAction() {
+  if (!state.flipped) {
+    setFlipped(true);
+  } else {
+    advance();
+  }
 }
 
 // ---------- DOM wiring ----------
@@ -346,9 +357,8 @@ const voicingFrontEl = document.getElementById("voicingFront");
 const voicingBackEl = document.getElementById("voicingBack");
 const diagramEl = document.getElementById("diagram");
 const progressEl = document.getElementById("progress");
-const nextBtn = document.getElementById("nextBtn");
+const primaryBtn = document.getElementById("primaryBtn");
 const prevBtn = document.getElementById("prevBtn");
-const revealBtn = document.getElementById("revealBtn");
 
 function populateCategorySelect() {
   const allOpt = document.createElement("option");
@@ -382,17 +392,16 @@ function render() {
   prevBtn.disabled = state.pos === 0;
 }
 
-card.addEventListener("click", () => setFlipped(!state.flipped));
-revealBtn.addEventListener("click", () => setFlipped(!state.flipped));
-nextBtn.addEventListener("click", advance);
+card.addEventListener("click", () => setFlipped(true));
+primaryBtn.addEventListener("click", primaryAction);
 prevBtn.addEventListener("click", goBack);
 
 document.addEventListener("keydown", (e) => {
   if (e.code === "Space" || e.code === "Enter") {
     e.preventDefault();
-    setFlipped(!state.flipped);
+    setFlipped(true);
   } else if (e.code === "ArrowRight") {
-    advance();
+    primaryAction();
   } else if (e.code === "ArrowLeft") {
     goBack();
   }
