@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Chord Quiz</title>
-<meta name="description" content="A flashcard quiz for learning guitar chord shapes." />
+<meta name="description" content="A flashcard quiz for learning guitar chord shapes, from open majors to jazz &amp; bossa nova voicings." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎸</text></svg>" />
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -12,21 +12,23 @@
 <div class="app">
   <header class="top">
     <h1>Chord Quiz</h1>
-    <p class="tagline">Name shows first. Click the card to reveal the shape.</p>
+    <p class="tagline">Open chords to jazz &amp; bossa nova shells. Click to reveal.</p>
   </header>
 
-  <div class="filters" id="filters"></div>
+  <select class="category" id="categorySelect" aria-label="Chord family"></select>
 
   <main class="stage">
     <button class="card" id="card" type="button" aria-live="polite">
       <div class="card-inner" id="cardInner">
         <div class="card-face card-front">
           <span class="chord-name" id="chordName">C</span>
+          <span class="voicing" id="voicingFront"></span>
           <span class="hint">tap to reveal</span>
         </div>
         <div class="card-face card-back">
           <div class="diagram" id="diagram"></div>
           <span class="chord-name small" id="chordNameBack">C</span>
+          <span class="voicing" id="voicingBack"></span>
         </div>
       </div>
     </button>

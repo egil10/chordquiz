@@ -1,15 +1,11 @@
 // Chord Quiz — flashcard-style guitar chord trainer.
 // Frets are stored low-E to high-e: null = muted, 0 = open, n = fret n.
 
-const QUALITY_LABELS = {
-  major: "Major",
-  minor: "Minor",
-  dom7: "7",
-  maj7: "Maj7",
-  min7: "Min7",
-};
+const ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 
-const CHORDS = [
+// ---------- essential chords: full open / barre voicings, hand-verified ----------
+
+const ESSENTIALS = [
   // --- C ---
   { name: "C",      quality: "major", frets: [null, 3, 2, 0, 1, 0] },
   { name: "Cm",      quality: "minor", frets: [null, 3, 5, 5, 4, 3] },
@@ -84,6 +80,125 @@ const CHORDS = [
   { name: "Bm7",     quality: "min7",  frets: [null, 2, 4, 2, 3, 2] },
 ];
 
+// ---------- jazz / bossa shell voicings: generated, movable-shape family ----------
+//
+// Each quality is a compact 4-note shell: root on the 6th string ("E" family)
+// or 5th string ("A" family), the other muted, and the three chord tones on
+// strings D/G/B as a fixed fret offset from the root fret. Because the offset
+// is fixed, the same physical shape transposes cleanly to all 12 roots — the
+// offsets below were solved (and verified note-by-note) to keep every shape
+// within a comfortable stretch, the way real jazz "shell voicing" method
+// books teach them. Every quality ships as two independent shapes — root on
+// the 6th string and root on the 5th string — so you learn it movable in two
+// places on the neck, not just one fixed spot.
+
+const JAZZ_SPECS = {
+  "6":       { suffix: "6",       label: "6",
+    E: { D: -1, G: 1,  B: 0 },  A: { D: 2,  G: -1, B: 2 } },
+  "6/9":     { suffix: "6/9",     label: "6/9",
+    E: { D: -1, G: -1, B: -3 }, A: { D: -1, G: -1, B: 0 } },
+  m6:        { suffix: "m6",      label: "m6",
+    E: { D: -1, G: 0,  B: 0 },  A: { D: 2,  G: -1, B: 1 } },
+  m7b5:      { suffix: "m7b5",    label: "m7b5",
+    E: { D: 0,  G: 0,  B: -1 }, A: { D: 1,  G: 0,  B: 1 } },
+  dim7:      { suffix: "dim7",    label: "dim7",
+    E: { D: -1, G: 0,  B: -1 }, A: { D: 1,  G: -1, B: 1 } },
+  "9":       { suffix: "9",       label: "9",
+    E: { D: 0,  G: -1, B: -3 }, A: { D: -1, G: 0,  B: 0 } },
+  m9:        { suffix: "m9",      label: "m9",
+    E: { D: 0,  G: -1, B: -4 }, A: { D: -2, G: 0,  B: 0 } },
+  maj9:      { suffix: "maj9",    label: "maj9",
+    E: { D: 1,  G: -1, B: -3 }, A: { D: -1, G: 1,  B: 0 } },
+  "7b9":     { suffix: "7b9",     label: "7b9",
+    E: { D: 0,  G: -2, B: -3 }, A: { D: -1, G: 0,  B: -1 } },
+  "7#9":     { suffix: "7#9",     label: "7#9",
+    E: { D: 0,  G: 0,  B: -3 }, A: { D: -1, G: 0,  B: 1 } },
+  "7#5":     { suffix: "7#5",     label: "7#5",
+    E: { D: 0,  G: 1,  B: 1 },  A: { D: 3,  G: 0,  B: 2 } },
+  "7b5":     { suffix: "7b5",     label: "7b5",
+    E: { D: 0,  G: 1,  B: -1 }, A: { D: 1,  G: 0,  B: 2 } },
+  "7#11":    { suffix: "7#11",    label: "7#11",
+    E: { D: 0,  G: 1,  B: -1 }, A: { D: 1,  G: 0,  B: 2 } },
+  "9sus4":   { suffix: "9sus4",   label: "9sus4",
+    E: { D: 0,  G: -1, B: -2 }, A: { D: 0,  G: 0,  B: 0 } },
+  "13":      { suffix: "13",      label: "13",
+    E: { D: 0,  G: 1,  B: 2 },  A: { D: -1, G: -1, B: -4 } },
+  add9:      { suffix: "add9",    label: "add9",
+    E: { D: -3, G: -1, B: -3 }, A: { D: -1, G: -3, B: 0 } },
+  sus2:      { suffix: "sus2",    label: "sus2",
+    E: { D: null, G: -1, B: 0 }, A: { D: 2,  G: null, B: 0 } },
+  sus4:      { suffix: "sus4",    label: "sus4",
+    E: { D: null, G: 2,  B: 0 }, A: { D: 0,  G: -3,   B: null } },
+  aug:       { suffix: "aug",     label: "aug",
+    E: { D: null, G: 1,  B: 1 }, A: { D: -1, G: -2,   B: null } },
+  dim:       { suffix: "dim",     label: "dim",
+    E: { D: null, G: 0,  B: -1 }, A: { D: 1, G: null, B: 1 } },
+  mMaj7:     { suffix: "mMaj7",   label: "mMaj7",
+    E: { D: 1,  G: 0,  B: 0 },  A: { D: 2,  G: 1,  B: 1 } },
+  "maj7#5":  { suffix: "maj7#5",  label: "maj7#5",
+    E: { D: 1,  G: 1,  B: 1 },  A: { D: -1, G: -2, B: -3 } },
+  "maj7#11": { suffix: "maj7#11", label: "maj7#11",
+    E: { D: 1,  G: 1,  B: -1 }, A: { D: 1,  G: 1,  B: 2 } },
+  m11:       { suffix: "m11",     label: "m11",
+    E: { D: 0,  G: 0,  B: -2 }, A: { D: 0,  G: 0,  B: 1 } },
+};
+
+function mod(a, n) {
+  return ((a % n) + n) % n;
+}
+
+function buildJazzFrets(rootIdx, family, offsets) {
+  const rootStringPC = family === "E" ? 4 : 9;
+  let n = mod(rootIdx - rootStringPC, 12);
+  const nonNull = [offsets.D, offsets.G, offsets.B].filter((o) => o !== null);
+  const minOffset = Math.min(0, ...nonNull);
+  if (n + minOffset < 0) n += 12;
+  const D = offsets.D === null ? null : n + offsets.D;
+  const G = offsets.G === null ? null : n + offsets.G;
+  const B = offsets.B === null ? null : n + offsets.B;
+  return family === "E" ? [n, null, D, G, B, null] : [null, n, D, G, B, null];
+}
+
+const JAZZ = [];
+for (let r = 0; r < 12; r++) {
+  for (const [key, spec] of Object.entries(JAZZ_SPECS)) {
+    JAZZ.push({
+      name: ROOTS[r] + spec.suffix,
+      quality: key,
+      voicing: "root on 6th string",
+      frets: buildJazzFrets(r, "E", spec.E),
+    });
+    JAZZ.push({
+      name: ROOTS[r] + spec.suffix,
+      quality: key,
+      voicing: "root on 5th string",
+      frets: buildJazzFrets(r, "A", spec.A),
+    });
+  }
+}
+
+const CHORDS = ESSENTIALS.concat(JAZZ);
+
+// ---------- category / quality metadata for the filter ----------
+
+const CATEGORIES = [
+  { key: "essentials", label: "Essentials", qualities: ["major", "minor", "dom7", "maj7", "min7"] },
+  { key: "sixths", label: "Sixths", qualities: ["6", "6/9", "m6"] },
+  { key: "extended", label: "Extended (9 / 11 / 13)", qualities: ["9", "m9", "maj9", "13", "add9", "m11"] },
+  { key: "altered", label: "Altered dominants", qualities: ["7b9", "7#9", "7#5", "7b5", "7#11"] },
+  { key: "diminished", label: "Diminished & half-dim", qualities: ["dim7", "m7b5", "dim"] },
+  { key: "suspended", label: "Suspended", qualities: ["sus2", "sus4", "9sus4"] },
+  { key: "augmented", label: "Augmented", qualities: ["aug", "mMaj7", "maj7#5", "maj7#11"] },
+];
+
+const QUALITY_LABEL = {
+  major: "Major", minor: "Minor", dom7: "7", maj7: "Maj7", min7: "Min7",
+};
+for (const [key, spec] of Object.entries(JAZZ_SPECS)) QUALITY_LABEL[key] = spec.label;
+
+const QUALITY_TO_CATEGORY = {};
+CATEGORIES.forEach((cat) => cat.qualities.forEach((q) => (QUALITY_TO_CATEGORY[q] = cat.key)));
+
 // ---------- chord diagram rendering (SVG, Ultimate-Guitar style) ----------
 
 function renderDiagram(frets) {
@@ -103,7 +218,7 @@ function renderDiagram(frets) {
 
   // barre detection: lowest fretted value repeated across 2+ strings
   let barre = null;
-  if (startFret === minFret && minFret > 0) {
+  if (minFret > 0) {
     const idxs = frets
       .map((f, i) => (f === minFret ? i : -1))
       .filter((i) => i !== -1);
@@ -116,16 +231,16 @@ function renderDiagram(frets) {
 
   // string/fret grid
   for (let i = 0; i < 6; i++) {
-    svg += `<line x1="${stringXs[i]}" y1="${gridTop}" x2="${stringXs[i]}" y2="${gridBottom}" stroke="#4a463c" stroke-width="1.5"/>`;
+    svg += `<line x1="${stringXs[i]}" y1="${gridTop}" x2="${stringXs[i]}" y2="${gridBottom}" stroke="var(--string)" stroke-width="1.5"/>`;
   }
   for (let r = 0; r <= numFrets; r++) {
     const y = gridTop + r * fretH;
     const isNut = r === 0 && startFret === 1;
-    svg += `<line x1="${stringXs[0]}" y1="${y}" x2="${stringXs[5]}" y2="${y}" stroke="${isNut ? "#f3f1ec" : "#4a463c"}" stroke-width="${isNut ? 4 : 1.5}"/>`;
+    svg += `<line x1="${stringXs[0]}" y1="${y}" x2="${stringXs[5]}" y2="${y}" stroke="${isNut ? "var(--nut)" : "var(--string)"}" stroke-width="${isNut ? 4 : 1.5}"/>`;
   }
 
   if (startFret > 1) {
-    svg += `<text x="${stringXs[0] - 10}" y="${gridTop + fretH * 0.65}" font-size="11" fill="#9a9691" text-anchor="end">${startFret}fr</text>`;
+    svg += `<text x="${stringXs[0] - 10}" y="${gridTop + fretH * 0.65}" font-size="11" fill="var(--dim)" text-anchor="end">${startFret}fr</text>`;
   }
 
   // open / muted markers above nut
@@ -133,17 +248,19 @@ function renderDiagram(frets) {
     const x = stringXs[i];
     const y = gridTop - 14;
     if (f === null) {
-      svg += `<text x="${x}" y="${y + 8}" font-size="13" fill="#9a9691" text-anchor="middle">&#215;</text>`;
+      svg += `<text x="${x}" y="${y + 8}" font-size="13" fill="var(--dim)" text-anchor="middle">&#215;</text>`;
     } else if (f === 0) {
-      svg += `<circle cx="${x}" cy="${y}" r="4.5" fill="none" stroke="#f3f1ec" stroke-width="1.5"/>`;
+      svg += `<circle cx="${x}" cy="${y}" r="4.5" fill="none" stroke="var(--nut)" stroke-width="1.5"/>`;
     }
   });
 
   // barre bar
   if (barre) {
     const row = barre.fret - startFret;
-    const y = gridTop + row * fretH + fretH / 2;
-    svg += `<rect x="${stringXs[barre.from] - 8}" y="${y - 8}" width="${stringXs[barre.to] - stringXs[barre.from] + 16}" height="16" rx="8" fill="#e8b84b"/>`;
+    if (row >= 0 && row < numFrets) {
+      const y = gridTop + row * fretH + fretH / 2;
+      svg += `<rect x="${stringXs[barre.from] - 8}" y="${y - 8}" width="${stringXs[barre.to] - stringXs[barre.from] + 16}" height="16" rx="8" fill="var(--accent)"/>`;
+    }
   }
 
   // finger dots
@@ -153,7 +270,7 @@ function renderDiagram(frets) {
       if (row < 0 || row >= numFrets) return;
       const x = stringXs[i];
       const y = gridTop + row * fretH + fretH / 2;
-      svg += `<circle cx="${x}" cy="${y}" r="8" fill="#e8b84b" stroke="#1e1c18" stroke-width="1.5"/>`;
+      svg += `<circle cx="${x}" cy="${y}" r="8" fill="var(--accent)" stroke="var(--card)" stroke-width="1.5"/>`;
     }
   });
 
@@ -169,7 +286,7 @@ const state = {
   history: [],
   pos: -1,
   flipped: false,
-  activeQualities: new Set(Object.keys(QUALITY_LABELS)),
+  category: "all",
 };
 
 function shuffled(arr) {
@@ -182,7 +299,10 @@ function shuffled(arr) {
 }
 
 function rebuildPool() {
-  state.pool = CHORDS.filter((c) => state.activeQualities.has(c.quality));
+  state.pool =
+    state.category === "all"
+      ? CHORDS
+      : CHORDS.filter((c) => QUALITY_TO_CATEGORY[c.quality] === state.category);
   state.queue = shuffled(state.pool);
   state.history = [];
   state.pos = -1;
@@ -217,56 +337,36 @@ function setFlipped(val) {
 
 // ---------- DOM wiring ----------
 
-const filtersEl = document.getElementById("filters");
+const categorySelect = document.getElementById("categorySelect");
 const card = document.getElementById("card");
 const cardInner = document.getElementById("cardInner");
 const chordNameEl = document.getElementById("chordName");
 const chordNameBackEl = document.getElementById("chordNameBack");
+const voicingFrontEl = document.getElementById("voicingFront");
+const voicingBackEl = document.getElementById("voicingBack");
 const diagramEl = document.getElementById("diagram");
 const progressEl = document.getElementById("progress");
 const nextBtn = document.getElementById("nextBtn");
 const prevBtn = document.getElementById("prevBtn");
 const revealBtn = document.getElementById("revealBtn");
 
-function buildFilters() {
-  const allChip = document.createElement("button");
-  allChip.className = "chip active";
-  allChip.textContent = "All";
-  allChip.addEventListener("click", () => {
-    state.activeQualities = new Set(Object.keys(QUALITY_LABELS));
-    syncChips();
+function populateCategorySelect() {
+  const allOpt = document.createElement("option");
+  allOpt.value = "all";
+  allOpt.textContent = `All chords (${CHORDS.length})`;
+  categorySelect.appendChild(allOpt);
+
+  CATEGORIES.forEach((cat) => {
+    const count = CHORDS.filter((c) => QUALITY_TO_CATEGORY[c.quality] === cat.key).length;
+    const opt = document.createElement("option");
+    opt.value = cat.key;
+    opt.textContent = `${cat.label} (${count})`;
+    categorySelect.appendChild(opt);
+  });
+
+  categorySelect.addEventListener("change", () => {
+    state.category = categorySelect.value;
     rebuildPool();
-  });
-  filtersEl.appendChild(allChip);
-
-  Object.entries(QUALITY_LABELS).forEach(([key, label]) => {
-    const chip = document.createElement("button");
-    chip.className = "chip active";
-    chip.textContent = label;
-    chip.dataset.key = key;
-    chip.addEventListener("click", () => {
-      if (state.activeQualities.has(key)) {
-        if (state.activeQualities.size === 1) return; // keep at least one
-        state.activeQualities.delete(key);
-      } else {
-        state.activeQualities.add(key);
-      }
-      syncChips();
-      rebuildPool();
-    });
-    filtersEl.appendChild(chip);
-  });
-}
-
-function syncChips() {
-  const chips = filtersEl.querySelectorAll(".chip");
-  const all = state.activeQualities.size === Object.keys(QUALITY_LABELS).length;
-  chips.forEach((chip) => {
-    if (!chip.dataset.key) {
-      chip.classList.toggle("active", all);
-    } else {
-      chip.classList.toggle("active", state.activeQualities.has(chip.dataset.key));
-    }
   });
 }
 
@@ -275,8 +375,10 @@ function render() {
   if (!chord) return;
   chordNameEl.textContent = chord.name;
   chordNameBackEl.textContent = chord.name;
+  voicingFrontEl.textContent = chord.voicing || "";
+  voicingBackEl.textContent = chord.voicing || "";
   diagramEl.innerHTML = renderDiagram(chord.frets);
-  progressEl.textContent = `${state.pos + 1} / ${state.pool.length} · ${QUALITY_LABELS[chord.quality]}`;
+  progressEl.textContent = `${state.pos + 1} / ${state.pool.length} · ${QUALITY_LABEL[chord.quality]}`;
   prevBtn.disabled = state.pos === 0;
 }
 
@@ -296,5 +398,5 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-buildFilters();
+populateCategorySelect();
 rebuildPool();

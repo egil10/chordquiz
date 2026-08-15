@@ -1,20 +1,30 @@
 :root {
-  --bg: #121212;
-  --bg-soft: #1a1a1a;
-  --ink: #f3f1ec;
-  --ink-dim: #9a9691;
-  --accent: #e8b84b;
-  --line: #333029;
-  --card: #1e1c18;
-  --radius: 18px;
+  --bg: #faf7f1;
+  --card: #ffffff;
+  --ink: #211d16;
+  --dim: #8c8478;
+  --line: #e6e0d4;
+  --accent: #b5651d;
+  --string: #c9c1b0;
+  --nut: #211d16;
   font-size: 16px;
 }
 
-* { box-sizing: border-box; }
-
-html, body {
-  height: 100%;
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17140f;
+    --card: #221e17;
+    --ink: #f3efe6;
+    --dim: #948c7d;
+    --line: #35301f;
+    --accent: #e0a458;
+    --string: #4a4536;
+    --nut: #f3efe6;
+  }
 }
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 
 body {
   margin: 0;
@@ -26,66 +36,52 @@ body {
   justify-content: center;
   padding: 24px 16px;
   min-height: 100vh;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .app {
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 18px;
 }
 
-.top {
-  text-align: center;
-}
+.top { text-align: center; }
 
 .top h1 {
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .tagline {
-  margin: 6px 0 0;
-  color: var(--ink-dim);
-  font-size: 0.9rem;
+  margin: 4px 0 0;
+  color: var(--dim);
+  font-size: 0.85rem;
 }
 
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-
-.chip {
-  background: var(--bg-soft);
+.category {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  background: var(--card);
   border: 1px solid var(--line);
-  color: var(--ink-dim);
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 0.82rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.chip:hover {
   color: var(--ink);
-  border-color: #4a463c;
-}
-
-.chip.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #1a1408;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 0.85rem;
   font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--dim) 50%), linear-gradient(135deg, var(--dim) 50%, transparent 50%);
+  background-position: calc(100% - 22px) center, calc(100% - 17px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
 
-.stage {
-  perspective: 1400px;
-}
+.stage { perspective: 1400px; }
 
 .card {
   all: unset;
@@ -103,53 +99,59 @@ body {
   transform-style: preserve-3d;
 }
 
-.card-inner.flipped {
-  transform: rotateY(180deg);
-}
+.card-inner.flipped { transform: rotateY(180deg); }
 
 .card-face {
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
-  border-radius: var(--radius);
+  border-radius: 18px;
   border: 1px solid var(--line);
   background: var(--card);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.6);
+  gap: 10px;
+  box-shadow: 0 16px 32px -20px rgba(30, 25, 15, 0.25);
 }
 
 .card-back {
   transform: rotateY(180deg);
-  gap: 18px;
+  gap: 14px;
   padding: 20px;
 }
 
 .chord-name {
-  font-size: 3.6rem;
+  font-size: 3.4rem;
   font-weight: 800;
   letter-spacing: -0.03em;
   color: var(--ink);
 }
 
 .chord-name.small {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--accent);
 }
 
+.voicing {
+  color: var(--dim);
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  min-height: 1em;
+}
+
 .hint {
-  color: var(--ink-dim);
-  font-size: 0.8rem;
+  color: var(--dim);
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
+  margin-top: 4px;
 }
 
 .diagram svg {
-  width: 190px;
+  width: 180px;
   height: auto;
   display: block;
 }
@@ -163,35 +165,30 @@ body {
 .controls button {
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: var(--bg-soft);
+  background: var(--card);
   color: var(--ink);
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   padding: 12px 20px;
   cursor: pointer;
-  transition: transform 0.1s ease, background 0.15s ease;
+  transition: transform 0.1s ease;
 }
 
-.controls button:active {
-  transform: scale(0.96);
-}
+.controls button:active { transform: scale(0.96); }
+.controls button:disabled { opacity: 0.4; cursor: default; }
 
 .controls .primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #1a1408;
+  color: #fffaf2;
   flex: 1;
-}
-
-.controls .ghost:hover {
-  border-color: #4a463c;
 }
 
 .foot {
   text-align: center;
-  color: var(--ink-dim);
-  font-size: 0.8rem;
-  letter-spacing: 0.04em;
+  color: var(--dim);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
 }
 
 @media (max-width: 380px) {
